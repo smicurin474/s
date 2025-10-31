@@ -4,9 +4,20 @@
 
 ## Установка в Colab
 
+1. Создайте токен на GitHub:
+   - Зайдите в Settings -> Developer settings -> Personal access tokens
+   - Выберите "Tokens (classic)"
+   - Generate new token
+   - Поставьте галочку на `repo`
+   - Скопируйте токен
+
+2. В Colab выполните:
 ```python
-# Устанавливаем библиотеку из GitHub
-!pip install git+https://github.com/smicurin474/s.git
+# Подставьте свой токен
+token = "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"
+
+# Устанавливаем библиотеку из приватного репозитория
+!pip install git+https://{token}@github.com/smicurin474/s.git
 
 # Если нужны зависимости
 !pip install torch transformers pillow tqdm pandas
