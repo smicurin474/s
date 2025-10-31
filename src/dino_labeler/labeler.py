@@ -85,10 +85,8 @@ def run_detector(base_dir, excluded_dirs, prompt):
                 # Сохраняем результаты
                 results_data.append({
                     "image_hash": image_hash,
-                    "tube_detected": detected,
                     "yolo_bbox": yolo_bbox if detected else [],
-                    "original_filename": image_file,
-                    "source_directory": dir_name
+                    "image_path": image_path
                 })
             
             print(f"Обработка {dir_name} завершена.")
@@ -98,7 +96,7 @@ def run_detector(base_dir, excluded_dirs, prompt):
     unique_hash_df = df.drop_duplicates(subset=["image_hash"])
 
     print(f"\nВсего обработано изображений: {len(results_data)}")
-    print(f"Найдено объектов: {df['tube_detected'].sum()}")
+    print(f"Найдено объектов: {len([x for x in df['yolo_bbox'] if x])}")
     print(f"Количество уникальных хешей: {len(unique_hash_df)}")
 
     return unique_hash_df
