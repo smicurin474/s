@@ -51,9 +51,9 @@ def run_detector(base_dir, excluded_dirs, prompt):
             target_sizes=[(image_height, image_width)]
         )
 
-        if len(results[0]['boxes']) > 0:
-            max_score_idx = torch.argmax(results[0]['scores'])
-            box = results[0]['boxes'][max_score_idx].tolist()
+        if len(results[0]["boxes"]) > 0:
+            max_score_idx = torch.argmax(results[0]["scores"])
+            box = results[0]["boxes"][max_score_idx].tolist()
             # Конвертация в YOLO формат
             x_min, y_min, x_max, y_max = box
             x_center = (x_min + x_max) / 2 / image_width
@@ -64,41 +64,41 @@ def run_detector(base_dir, excluded_dirs, prompt):
         
         return False, []
 
-# Создаем DataFrame для хранения результатов
-results_data = []
+    # Создаем DataFrame для хранения результатов
+    results_data = []
 
-for dir_name in os.listdir(base_dir):
-    if dir_name not in excluded_dirs and os.path.isdir(os.path.join(base_dir, dir_name)):
-        input_dir = os.path.join(base_dir, dir_name)
-        
-        image_files = [f for f in os.listdir(input_dir) if os.path.isfile(os.path.join(input_dir, f))]
-        
-        for image_file in tqdm(image_files, desc=f"Обработка {dir_name}"):
-            image_path = os.path.join(input_dir, image_file)
+    for dir_name in os.listdir(base_dir):
+        if dir_name not in excluded_dirs and os.path.isdir(os.path.join(base_dir, dir_name)):
+            input_dir = os.path.join(base_dir, dir_name)
             
-            # Вычисляем хэш исходного изображения
-            image_hash = calc_hash256(image_path)
+            image_files = [f for f in os.listdir(input_dir) if os.path.isfile(os.path.join(input_dir, f))]
             
-            # Обрабатываем изображение
-            detected, yolo_bbox = process_image(image_path)
+            for image_file in tqdm(image_files, desc=f"Обработка {dir_name}"):
+                image_path = os.path.join(input_dir, image_file)
+                
+                # Вычисляем хэш исходного изображения
+                image_hash = calc_hash256(image_path)
+                
+                # Обрабатываем изображение
+                detected, yolo_bbox = process_image(image_path, text_prompt=prompt)
+                
+                # Сохраняем результаты
+                results_data.append({
+                    "image_hash": image_hash,
+                    "tube_detected": detected,
+                    "yolo_bbox": yolo_bbox if detected else [],
+                    "original_filename": image_file,
+                    "source_directory": dir_name
+                })
             
-            # Сохраняем результаты
-            results_data.append({
-                'image_hash': image_hash,
-                'tube_detected': detected,
-                'yolo_bbox': yolo_bbox if detected else [],
-                'original_filename': image_file,
-                'source_directory': dir_name
-            })
-        
-        print(f"Обработка {dir_name} завершена.")
+            print(f"Обработка {dir_name} завершена.")
 
-# Создаем DataFrame и убираем дубликаты по хешу
-df = pd.DataFrame(results_data)
-unique_hash_df = df.drop_duplicates(subset=['image_hash'])
+    # Создаем DataFrame и убираем дубликаты по хешу
+    df = pd.DataFrame(results_data)
+    unique_hash_df = df.drop_duplicates(subset=["image_hash"])
 
-print(f"\nВсего обработано изображений: {len(results_data)}")
-print(f"Найдено объектов: {df['tube_detected'].sum()}")
-print(f"Количество уникальных хешей: {len(unique_hash_df)}")
+    print(f"\nВсего обработано изображений: {len(results_data)}")
+    print(f"Найдено объектов: {df['tube_detected'].sum()}")
+    print(f"Количество уникальных хешей: {len(unique_hash_df)}")
 
-return unique_hash_df
+    return unique_hash_df
